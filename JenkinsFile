@@ -1,0 +1,25 @@
+pipeline { 
+    agent any 
+ 
+    stages { 
+ 
+        stage('Checkout') { 
+            steps { 
+                git branch: 'main', 
+                    url: 'https://github.com/Avp123456/cicd-demo-2.git' 
+            } 
+        } 
+ 
+        stage('Build') { 
+            steps { 
+                sh './mvnw clean package -DskipTests' 
+            } 
+        } 
+ 
+        stage('Deploy') { 
+            steps { 
+                echo 'Deployment stage will be configured next' 
+            } 
+        } 
+    } 
+}
