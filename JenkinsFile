@@ -12,7 +12,25 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deployment stage will be configured next'
+                sh '''
+                    mkdir -p /var/lib/jenkins/cicd-demo
+
+                    if [ -f /var/lib/jenkins/cicd-demo/app.pid ]; then
+                        kill $(cat /var/lib/jenkins/cicd-demo/app.pid) || true
+                        rm -f /var/lib/jenkins/cicd-demo/app.pid
+                        sleep 5
+                    fi
+
+                    cp target/cicd-demo-2-0.0.1-SNAPSHOT.jar /var/lib/jenkins/cicd-demo/app.jar
+
+                    nohup java -jar /var/lib/jenkins/cicd-demo/app.jar > /var/lib/jenkins/cicd-demo/app.log 2>&1 &
+
+                    echo $! > /var/lib/jenkins/cicd-demo/app.pid
+
+                    sleep 10
+
+                    cat /var/lib/jenkins/cicd-demo/app.log
+                '''
             }
         }
     }
