@@ -1,37 +1,26 @@
-pipeline {
-    agent any
+stage('Deploy') {
+    steps {
+        sh '''
+            mkdir -p /var/lib/jenkins/cicd-demo-2
 
-    stages {
+            if [ -f /var/lib/jenkins/cicd-demo-2/app.pid ]; then
+                kill $(cat /var/lib/jenkins/cicd-demo-2/app.pid) || true
+                rm -f /var/lib/jenkins/cicd-demo-2/app.pid
+                sleep 5
+            fi
 
-        stage('Build') {
-            steps {
-                sh 'chmod +x mvnw'
-                sh './mvnw clean package -DskipTests'
-            }
-        }
+            cp target/cicd-demo-2-0.0.1-SNAPSHOT.jar \
+               /var/lib/jenkins/cicd-demo-2/app.jar
 
-        stage('Deploy') {
-            steps {
-                sh '''
-                    mkdir -p /var/lib/jenkins/cicd-demo-2
+            JENKINS_NODE_COOKIE=dontKillMe \
+            nohup java -jar /var/lib/jenkins/cicd-demo-2/app.jar \
+            > /var/lib/jenkins/cicd-demo-2/app.log 2>&1 &
 
-                    if [ -f /var/lib/jenkins/cicd-demo-2/app.pid ]; then
-                        kill $(cat /var/lib/jenkins/cicd-demo-2/app.pid) || true
-                        rm -f /var/lib/jenkins/cicd-demo-2/app.pid
-                        sleep 5
-                    fi
+            echo $! > /var/lib/jenkins/cicd-demo-2/app.pid
 
-                    cp target/cicd-demo-2-0.0.1-SNAPSHOT.jar /var/lib/jenkins/cicd-demo-2/app.jar
+            sleep 10
 
-                    nohup java -jar /var/lib/jenkins/cicd-demo-2/app.jar > /var/lib/jenkins/cicd-demo-2/app.log 2>&1 &
-
-                    echo $! > /var/lib/jenkins/cicd-demo-2/app.pid
-
-                    sleep 10
-
-                    cat /var/lib/jenkins/cicd-demo-2/app.log
-                '''
-            }
-        }
+            cat /var/lib/jenkins/cicd-demo-2/app.log
+        '''
     }
 }
